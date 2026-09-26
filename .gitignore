@@ -21,3 +21,11 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+# Local Python installation and configuration
+.argonv2_controller/
+config.toml
+__pycache__/
+*.egg-info/
+.pytest_cache/
+build/
+dist/

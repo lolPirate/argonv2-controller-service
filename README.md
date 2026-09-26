@@ -78,23 +78,45 @@ dtparam=i2c_arm=on
 
 ## Install
 
-From the project root:
+For a checkout at `/home/deb/argonv2-controller-service` on the Pi:
 
 ```bash
+cd /home/deb/argonv2-controller-service
 chmod +x scripts/install.sh scripts/uninstall.sh scripts/argonv2-system-shutdown
 sudo ./scripts/install.sh
 ```
 
+The checkout is the application home: the installer creates its virtual
+environment here, installs the Python package in editable mode, and keeps the
+local configuration here. It preserves an existing `config.toml` on reruns.
+The generated service uses this checkout as its working directory and `HOME`.
+
 The installer creates:
 
 ```text
-/opt/argonv2-controller/.venv
-/etc/argonv2-controller/config.toml
+/home/deb/argonv2-controller-service/.argonv2_controller
+/home/deb/argonv2-controller-service/config.toml
 /etc/systemd/system/argonv2-controller.service
 /usr/lib/systemd/system-shutdown/argonv2-controller
 ```
 
+The installer detects the checkout directory automatically if you use a different
+folder name. Install through the script so the service template's
+`@PROJECT_DIR@` placeholders are replaced with the actual path. The service can
+read the checkout under `/home/deb` and waits for its filesystem to be mounted.
+
+Keep the checkout at this location while the service is installed. After pulling
+updates, rerun `sudo ./scripts/install.sh` to refresh dependencies, the service,
+and the shutdown hook and restart the controller. If you move the checkout,
+remove `.argonv2_controller` and rerun the installer at the new location.
+
+To uninstall the service and hook, run `sudo ./scripts/uninstall.sh`; the
+checkout, virtual environment, and configuration are preserved.
+
 ## Configuration
+
+Edit `config.toml` in the checkout. CLI commands also default to this file,
+regardless of the current working directory; `--config PATH` overrides it.
 
 Default configuration:
 
@@ -145,23 +167,25 @@ sudo systemctl restart argonv2-controller
 
 ## Useful commands
 
+Run these commands from the checkout root.
+
 Check configuration/hardware:
 
 ```bash
-sudo /opt/argonv2-controller/.venv/bin/argonv2-controller status
+sudo ./.argonv2_controller/bin/argonv2-controller status
 ```
 
 Set a fan speed:
 
 ```bash
-sudo /opt/argonv2-controller/.venv/bin/argonv2-controller set-fan 100
-sudo /opt/argonv2-controller/.venv/bin/argonv2-controller set-fan 0
+sudo ./.argonv2_controller/bin/argonv2-controller set-fan 100
+sudo ./.argonv2_controller/bin/argonv2-controller set-fan 0
 ```
 
 Run a fan test:
 
 ```bash
-sudo /opt/argonv2-controller/.venv/bin/argonv2-controller test-fan
+sudo ./.argonv2_controller/bin/argonv2-controller test-fan
 ```
 
 Watch logs:

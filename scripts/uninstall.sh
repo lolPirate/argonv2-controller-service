@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 if [[ $EUID -ne 0 ]]; then
     echo "Run this uninstaller with sudo."
     exit 1
@@ -14,7 +16,7 @@ systemctl daemon-reload
 echo "Service and shutdown hook removed."
 echo
 echo "Preserved intentionally:"
-echo "  /etc/argonv2-controller/config.toml"
-echo "  /opt/argonv2-controller"
+echo "  $PROJECT_DIR/config.toml"
+echo "  $PROJECT_DIR (including .argonv2_controller)"
 echo
-echo "Delete those manually if you want a complete purge."
+echo "Delete the checkout manually if you want a complete purge."

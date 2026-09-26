@@ -1,13 +1,16 @@
+# Template rendered by scripts/install.sh for this checkout.
 [Unit]
 Description=Argon ONE V2 fan and power-button controller
-Documentation=file:/opt/argonv2-controller/README.md
 After=local-fs.target
+RequiresMountsFor="@PROJECT_DIR@"
 ConditionPathExists=/dev/i2c-1
 ConditionPathExists=/dev/gpiochip0
 
 [Service]
 Type=simple
-ExecStart=/opt/argonv2-controller/.venv/bin/argonv2-controller --config /etc/argonv2-controller/config.toml run
+WorkingDirectory="@PROJECT_DIR@"
+Environment="HOME=@PROJECT_DIR@"
+ExecStart="@PROJECT_DIR@/.argonv2_controller/bin/python" -m argonv2_controller.cli --config "@PROJECT_DIR@/config.toml" run
 Restart=on-failure
 RestartSec=3
 TimeoutStopSec=5
@@ -20,7 +23,7 @@ Group=root
 # Basic hardening that still allows /dev access and systemctl actions.
 NoNewPrivileges=yes
 PrivateTmp=yes
-ProtectHome=yes
+ProtectHome=read-only
 ProtectSystem=strict
 ReadWritePaths=/run
 

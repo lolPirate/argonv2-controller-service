@@ -2,8 +2,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-INSTALL_DIR="/opt/argonv2-controller"
-CONFIG_DIR="/etc/argonv2-controller"
+CONFIG_PATH="$PROJECT_DIR/config.toml"
 SERVICE_PATH="/etc/systemd/system/argonv2-controller.service"
 SHUTDOWN_HOOK="/usr/lib/systemd/system-shutdown/argonv2-controller"
 
@@ -19,31 +18,43 @@ for command in python3 i2cset; do
     fi
 done
 
-echo "Installing project to $INSTALL_DIR"
-mkdir -p "$INSTALL_DIR"
-cp -a "$PROJECT_DIR/." "$INSTALL_DIR/"
+echo "Installing from checkout: $PROJECT_DIR"
 
 echo "Creating Python virtual environment"
-python3 -m venv "$INSTALL_DIR/.venv"
-"$INSTALL_DIR/.venv/bin/python" -m pip install --upgrade pip
-"$INSTALL_DIR/.venv/bin/pip" install "$INSTALL_DIR"
+python3 -m venv "$PROJECT_DIR/.argonv2_controller"
+"$PROJECT_DIR/.argonv2_controller/bin/python" -m pip install --upgrade pip
+"$PROJECT_DIR/.argonv2_controller/bin/pip" install --editable "$PROJECT_DIR"
 
 echo "Installing configuration"
-mkdir -p "$CONFIG_DIR"
-if [[ ! -f "$CONFIG_DIR/config.toml" ]]; then
-    cp "$INSTALL_DIR/config.example.toml" "$CONFIG_DIR/config.toml"
+if [[ ! -f "$CONFIG_PATH" ]]; then
+    cp "$PROJECT_DIR/config.example.toml" "$CONFIG_PATH"
 else
-    echo "Keeping existing $CONFIG_DIR/config.toml"
+    echo "Keeping existing $CONFIG_PATH"
 fi
 
 echo "Installing systemd service"
-cp "$INSTALL_DIR/systemd/argonv2-controller.service" "$SERVICE_PATH"
+python3 - "$PROJECT_DIR" "$SERVICE_PATH" <<'PYTHON'
+from pathlib import Path
+import sys
+
+project = Path(sys.argv[1])
+# Escape literal paths for systemd's quoted values and specifier expansion.
+path = str(project).replace("\\", "\\\\").replace('"', '\\"')
+path = path.replace("%", "%%").replace("\n", "\\n").replace("\r", "\\r")
+template = (project / "systemd/argonv2-controller.service").read_text()
+lines = []
+for line in template.splitlines():
+    value = path.replace("$", "$$") if line.startswith("ExecStart=") else path
+    lines.append(line.replace("@PROJECT_DIR@", value))
+Path(sys.argv[2]).write_text("\n".join(lines) + "\n")
+PYTHON
 
 echo "Installing final-shutdown hook"
-install -m 0755 "$INSTALL_DIR/scripts/argonv2-system-shutdown" "$SHUTDOWN_HOOK"
+install -m 0755 "$PROJECT_DIR/scripts/argonv2-system-shutdown" "$SHUTDOWN_HOOK"
 
 systemctl daemon-reload
-systemctl enable --now argonv2-controller.service
+systemctl enable argonv2-controller.service
+systemctl restart argonv2-controller.service
 
 echo
 echo "Installed."

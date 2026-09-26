@@ -5,7 +5,7 @@ from pathlib import Path
 import tomllib
 
 
-DEFAULT_CONFIG_PATH = Path("/etc/argonv2-controller/config.toml")
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config.toml"
 
 
 @dataclass(frozen=True, slots=True)
