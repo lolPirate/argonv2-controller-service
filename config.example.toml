@@ -1,0 +1,36 @@
+[i2c]
+bus = 1
+address = 0x1a
+
+[temperature]
+path = "/sys/class/thermal/thermal_zone0/temp"
+poll_interval_seconds = 5.0
+
+[fan]
+hysteresis_c = 3.0
+minimum_change_percent = 1
+
+[[fan.curve]]
+temp_c = 50
+speed_percent = 20
+
+[[fan.curve]]
+temp_c = 55
+speed_percent = 35
+
+[[fan.curve]]
+temp_c = 60
+speed_percent = 60
+
+[[fan.curve]]
+temp_c = 65
+speed_percent = 100
+
+[button]
+enabled = true
+chip = "/dev/gpiochip0"
+line = 4
+reboot_min_ms = 10
+reboot_max_ms = 30
+shutdown_min_ms = 30
+shutdown_max_ms = 55

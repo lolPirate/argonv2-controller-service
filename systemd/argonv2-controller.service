@@ -1,0 +1,28 @@
+[Unit]
+Description=Argon ONE V2 fan and power-button controller
+Documentation=file:/opt/argonv2-controller/README.md
+After=local-fs.target
+ConditionPathExists=/dev/i2c-1
+ConditionPathExists=/dev/gpiochip0
+
+[Service]
+Type=simple
+ExecStart=/opt/argonv2-controller/.venv/bin/argonv2-controller --config /etc/argonv2-controller/config.toml run
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=5
+
+# Hardware access + reboot/poweroff require root for this deliberately simple
+# local appliance service.
+User=root
+Group=root
+
+# Basic hardening that still allows /dev access and systemctl actions.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/run
+
+[Install]
+WantedBy=multi-user.target

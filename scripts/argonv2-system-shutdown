@@ -1,0 +1,14 @@
+#!/bin/sh
+# systemd-shutdown hook.
+#
+# Argument is one of: halt, poweroff, reboot, kexec.
+# Only tell the Argon board to cut power for halt/poweroff.
+# Never send 0xff for reboot.
+
+case "$1" in
+    poweroff|halt)
+        /usr/sbin/i2cset -y 1 0x1a 0xff >/dev/null 2>&1 || true
+        ;;
+esac
+
+exit 0
