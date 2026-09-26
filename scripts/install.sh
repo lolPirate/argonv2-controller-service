@@ -50,7 +50,11 @@ Path(sys.argv[2]).write_text("\n".join(lines) + "\n")
 PYTHON
 
 echo "Installing final-shutdown hook"
+install -d -m 0755 "$(dirname "$SHUTDOWN_HOOK")"
 install -m 0755 "$PROJECT_DIR/scripts/argonv2-system-shutdown" "$SHUTDOWN_HOOK"
+
+echo "Validating systemd service"
+systemd-analyze verify "$SERVICE_PATH"
 
 systemctl daemon-reload
 systemctl enable argonv2-controller.service

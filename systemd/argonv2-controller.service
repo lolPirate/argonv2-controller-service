@@ -8,7 +8,7 @@ ConditionPathExists=/dev/gpiochip0
 
 [Service]
 Type=simple
-WorkingDirectory="@PROJECT_DIR@"
+WorkingDirectory=@PROJECT_DIR@
 Environment="HOME=@PROJECT_DIR@"
 ExecStart="@PROJECT_DIR@/.argonv2_controller/bin/python" -m argonv2_controller.cli --config "@PROJECT_DIR@/config.toml" run
 Restart=on-failure
